@@ -1,4 +1,6 @@
-*.env
-service_account.json
+damadam-scraper-credentials.json
+damadam_cookies.json
+damadam_profiles.csv
 __pycache__/
 *.pyc
+.env
