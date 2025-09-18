@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+*.log
+damadam_cook.json
+credentials.json
