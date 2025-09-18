@@ -1,0 +1,28 @@
+name: Run DamaDam Scraper
+
+on:
+  workflow_dispatch:   # manually run kar sakte ho
+  schedule:
+    - cron: "0 */2 * * *"   # har 2 ghante baad auto run hoga
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run scraper
+      run: |
+        python scraper.py
