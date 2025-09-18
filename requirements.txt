@@ -1,0 +1,6 @@
+selenium
+webdriver-manager
+colorama
+gspread
+oauth2client
+gspread-formatting
