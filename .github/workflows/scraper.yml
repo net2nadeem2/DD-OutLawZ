@@ -3,7 +3,7 @@ name: Run DamaDam Scraper
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 */6 * * *"   # Every 6 hours instead of every 2
+    - cron: "0 */1 * * *"   # Every 6 hours instead of every 2
 
 jobs:
   build:
