@@ -39,14 +39,14 @@ SHEET_URL = os.getenv("SHEET_URL")
 SERVICE_JSON_B64 = os.getenv("SERVICE_JSON")
 
 # Settings
-MAX_PAGES = int(os.getenv("MAX_PAGES", "2"))
+MAX_PAGES = int(os.getenv("MAX_PAGES", "50"))
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", "20"))
 PAGE_TIMEOUT = int(os.getenv("PAGE_TIMEOUT", "8"))
-MIN_DELAY = float(os.getenv("MIN_DELAY", "0.8"))
-MAX_DELAY = float(os.getenv("MAX_DELAY", "1.2"))
+MIN_DELAY = float(os.getenv("MIN_DELAY", "2.5"))
+MAX_DELAY = float(os.getenv("MAX_DELAY", "3.6"))
 
 # Sheet names
-WORKSHEET_NAME = "Text-Post"
+WORKSHEET_NAME = "Text-Post1"
 PROFILES_SHEET = "Profiles"
 ANALYTICS_SHEET = "User-Analytics"
 
