@@ -22,6 +22,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from webdriver_manager.chrome import ChromeDriverManager
+from datetime import datetime
 
 # Google Sheets imports
 import gspread
@@ -39,19 +40,19 @@ SHEET_URL = os.getenv("SHEET_URL")
 SERVICE_JSON_B64 = os.getenv("SERVICE_JSON")
 
 # Settings
-MAX_PAGES = int(os.getenv("MAX_PAGES", "50"))
-BATCH_SIZE = int(os.getenv("BATCH_SIZE", "20"))
-PAGE_TIMEOUT = int(os.getenv("PAGE_TIMEOUT", "8"))
-MIN_DELAY = float(os.getenv("MIN_DELAY", "2.5"))
-MAX_DELAY = float(os.getenv("MAX_DELAY", "3.6"))
+MAX_PAGES = int(os.getenv("MAX_PAGES", "5"))
+BATCH_SIZE = int(os.getenv("BATCH_SIZE", "10"))
+PAGE_TIMEOUT = int(os.getenv("PAGE_TIMEOUT", "6"))
+MIN_DELAY = float(os.getenv("MIN_DELAY", "1.5"))
+MAX_DELAY = float(os.getenv("MAX_DELAY", "2.6"))
 
 # Sheet names
-WORKSHEET_NAME = "Text-Post1"
+WORKSHEET_NAME = "Text-Post2"
 PROFILES_SHEET = "Profiles"
 ANALYTICS_SHEET = "User-Analytics"
 
 # CSV backup
-CSV_FILE = "damadam_posts_backup.csv"
+CSV_FILE = "posts_backup_new.csv"
 
 # ----------------- Logging Setup -----------------
 logging.basicConfig(
@@ -61,7 +62,9 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # ----------------- Headers Structure -----------------
+# >>> CHANGE: Added "SCRAPE_TIME" as the first column so every inserted row starts with scrape timestamp.
 HEADERS = [
+    "SCRAPE_TIME",   # >>> CHANGE: current scrape time (YYYY-mm-dd HH:MM:SS)
     "A_IMAGE",       # =IMAGE(URL,4,35,35)
     "B_NICKNAME",    # Nickname 
     "C_PAGE#",       # Page number
@@ -152,6 +155,7 @@ def setup_driver():
     options.add_argument("--disable-extensions")
     options.add_argument("--disable-plugins")
     options.add_argument("--disable-images")  # Speed up loading
+    # NOTE: disabling JS can break site rendering; if you face empty pages, remove the next line
     options.add_argument("--disable-javascript")  # If not needed
     options.add_argument("--disable-blink-features=AutomationControlled")
     options.add_argument("--user-agent=Mozilla/5.0 (Linux; Android 10; SM-G973F) AppleWebKit/537.36")
@@ -571,6 +575,12 @@ def update_batch_in_sheets(worksheet, batch_data, existing_posts):
                 continue
                 
             hash_key = text_hash(text)
+
+            # >>> CHANGE: Inject SCRAPE_TIME at the moment of preparing the row for insertion.
+            # This ensures the sheet's first column contains exact time when we pushed the row.
+            data["SCRAPE_TIME"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+            # Build row values following HEADERS order
             row_values = [data.get(h, "") for h in HEADERS]
             
             if hash_key not in existing_posts:
@@ -578,11 +588,17 @@ def update_batch_in_sheets(worksheet, batch_data, existing_posts):
                 new_posts += 1
             # For GitHub Actions, we'll focus on new posts only to keep it simple
         
-        # Insert new rows at the top
+        # Insert new rows at the top (batch insert for speed)
         if insert_rows:
-            logger.info(f"Inserting {len(insert_rows)} new posts...")
-            for row_data in insert_rows:
-                worksheet.insert_row(row_data, index=2, value_input_option="USER_ENTERED")
+            logger.info(f"Inserting {len(insert_rows)} new posts (batch)...")
+            try:
+                # insert_rows inserts multiple rows at once; position at row=2 keeps header on top
+                worksheet.insert_rows(insert_rows, row=2, value_input_option="USER_ENTERED")
+            except Exception as e:
+                # Fallback: some gspread versions may not support insert_rows with value_input_option.
+                logger.warning(f"Batch insert failed, falling back to row-by-row insert: {e}")
+                for row_data in insert_rows:
+                    worksheet.insert_row(row_data, index=2, value_input_option="USER_ENTERED")
             stats.api_call()
         
         logger.info(f"Batch complete: {new_posts} new posts added")
