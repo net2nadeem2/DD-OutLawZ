@@ -24,5 +24,10 @@ jobs:
         pip install -r requirements.txt
 
     - name: Run scraper
+      env:        # 👇 yahan secrets ko inject karo
+        DD_USERNAME: ${{ secrets.DD_USERNAME }}
+        DD_PASSWORD: ${{ secrets.DD_PASSWORD }}
+        SHEET_URL: ${{ secrets.SHEET_URL }}
+        SERVICE_JSON: ${{ secrets.SERVICE_JSON }}
       run: |
         python scraper.py
