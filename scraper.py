@@ -204,7 +204,6 @@ def connect_google_sheet():
         # Set headers if needed
         existing_headers = worksheet.row_values(1) if worksheet.row_count > 0 else []
         if existing_headers[:len(HEADERS)] != HEADERS:
-            worksheet.clear()
             worksheet.append_row(HEADERS)
             logger.info("Headers updated in worksheet")
         
